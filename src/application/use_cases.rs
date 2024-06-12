@@ -45,4 +45,20 @@ impl<T: TodoRepository> TodoService<T> {
     pub fn get_all_todos(&self) -> Vec<Todo> {
         self.repository.read_all()
     }
+
+    /// Marks a Todo item as started.
+    pub fn start_todo(&self, id: i32, start_time: String) {
+        if let Some(mut todo) = self.repository.read(id) {
+            todo.start(start_time);
+            self.repository.update(todo);
+        }
+    }
+
+    /// Marks a Todo item as completed.
+    pub fn complete_todo(&self, id: i32, complete_time: String) {
+        if let Some(mut todo) = self.repository.read(id) {
+            todo.complete(complete_time);
+            self.repository.update(todo);
+        }
+    }
 }

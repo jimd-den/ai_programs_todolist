@@ -23,7 +23,9 @@ impl SQLiteTodoRepository {
             "CREATE TABLE IF NOT EXISTS todos (
                 id INTEGER PRIMARY KEY,
                 title TEXT NOT NULL,
-                completed BOOLEAN NOT NULL
+                completed BOOLEAN NOT NULL,
+                start_time TEXT,
+                complete_time TEXT
             )",
             [],
         ).unwrap();
@@ -42,12 +44,14 @@ impl TodoRepository for SQLiteTodoRepository {
     }
 
     fn read(&self, id: i32) -> Option<Todo> {
-        let mut stmt = self.conn.prepare("SELECT id, title, completed FROM todos WHERE id = ?1").unwrap();
+        let mut stmt = self.conn.prepare("SELECT id, title, completed, start_time, complete_time FROM todos WHERE id = ?1").unwrap();
         let todo_iter = stmt.query_map([id], |row| {
             Ok(Todo {
                 id: row.get(0)?,
                 title: row.get(1)?,
                 completed: row.get(2)?,
+                start_time: row.get(3)?,
+                complete_time: row.get(4)?,
             })
         }).unwrap();
 
@@ -59,8 +63,8 @@ impl TodoRepository for SQLiteTodoRepository {
 
     fn update(&self, todo: Todo) {
         self.conn.execute(
-            "UPDATE todos SET title = ?1, completed = ?2 WHERE id = ?3",
-            params![todo.title, todo.completed, todo.id],
+            "UPDATE todos SET title = ?1, completed = ?2, start_time = ?3, complete_time = ?4 WHERE id = ?5",
+            params![todo.title, todo.completed, todo.start_time, todo.complete_time, todo.id],
         ).unwrap();
     }
 
@@ -69,12 +73,14 @@ impl TodoRepository for SQLiteTodoRepository {
     }
 
     fn read_all(&self) -> Vec<Todo> {
-        let mut stmt = self.conn.prepare("SELECT id, title, completed FROM todos").unwrap();
+        let mut stmt = self.conn.prepare("SELECT id, title, completed, start_time, complete_time FROM todos").unwrap();
         let todo_iter = stmt.query_map([], |row| {
             Ok(Todo {
                 id: row.get(0)?,
                 title: row.get(1)?,
                 completed: row.get(2)?,
+                start_time: row.get(3)?,
+                complete_time: row.get(4)?,
             })
         }).unwrap();
 

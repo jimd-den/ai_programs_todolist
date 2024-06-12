@@ -37,4 +37,14 @@ impl<T: TodoRepository> TodoController<T> {
     pub fn get_all_todos(&self) -> Vec<Todo> {
         self.service.get_all_todos()
     }
+
+    /// Handles a request to start a Todo item.
+    pub fn start_todo_request(&self, id: i32, start_time: String) {
+        self.service.start_todo(id, start_time);
+    }
+
+    /// Handles a request to complete a Todo item.
+    pub fn complete_todo_request(&self, id: i32, complete_time: String) {
+        self.service.complete_todo(id, complete_time);
+    }
 }

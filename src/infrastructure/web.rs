@@ -18,6 +18,8 @@ pub async fn run_server() -> std::io::Result<()> {
             .route("/todos", web::post().to(create_todo))
             .route("/todos/{id}", web::get().to(get_todo))
             .route("/todos/{id}", web::put().to(update_todo))
+            .route("/todos/{id}/start", web::post().to(start_todo)) // New route for starting a todo
+            .route("/todos/{id}/complete", web::post().to(complete_todo)) // New route for completing a todo
             .route("/todos/{id}", web::delete().to(delete_todo))
             .service(Files::new("/", "./src/infrastructure/static").index_file("index.html"))
     })
@@ -49,6 +51,20 @@ async fn get_todo(controller: web::Data<TodoController<SQLiteTodoRepository>>, i
 /// Handler to update a Todo item.
 async fn update_todo(controller: web::Data<TodoController<SQLiteTodoRepository>>, todo: web::Json<Todo>) -> impl Responder {
     controller.update_todo_request(todo.into_inner());
+    HttpResponse::Ok().finish()
+}
+
+/// Handler to start a Todo item.
+async fn start_todo(controller: web::Data<TodoController<SQLiteTodoRepository>>, info: web::Path<(i32, String)>) -> impl Responder {
+    let (id, start_time) = info.into_inner();
+    controller.start_todo_request(id, start_time);
+    HttpResponse::Ok().finish()
+}
+
+/// Handler to complete a Todo item.
+async fn complete_todo(controller: web::Data<TodoController<SQLiteTodoRepository>>, info: web::Path<(i32, String)>) -> impl Responder {
+    let (id, complete_time) = info.into_inner();
+    controller.complete_todo_request(id, complete_time);
     HttpResponse::Ok().finish()
 }
 
