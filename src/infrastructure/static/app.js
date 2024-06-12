@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (event.target.classList.contains('toggle')) {
             const id = event.target.dataset.id;
             const todo = await getTodoById(id);
-            todo.completed = !todo.completed;
-            await updateTodo(todo);
-            event.target.parentElement.classList.toggle('completed');
+            showDialog(todo);
         }
     });
 
@@ -59,14 +57,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return await response.json();
     }
 
-    async function updateTodo(todo) {
-        const response = await fetch(`/todos/${todo.id}`, {
+    async function updateTodoStart(id, startTime) {
+        const response = await fetch(`/todos/${id}/start`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(todo)
+            body: JSON.stringify({ start_time: startTime })
         });
         if (!response.ok) {
-            console.error('Failed to update todo:', response.statusText);
+            console.error('Failed to start todo:', response.statusText);
+            return;
+        }
+    }
+
+    async function updateTodoComplete(id, completeTime) {
+        const response = await fetch(`/todos/${id}/complete`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ complete_time: completeTime })
+        });
+        if (!response.ok) {
+            console.error('Failed to complete todo:', response.statusText);
             return;
         }
     }
@@ -88,6 +98,34 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="delete" data-id="${todo.id}">Delete</button>
         `;
         todoList.appendChild(li);
+    }
+
+    function showDialog(todo) {
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog';
+        dialog.innerHTML = `
+            <p>Do you want to start or complete this todo?</p>
+            <button class="start">Start</button>
+            <button class="complete">Complete</button>
+            <button class="cancel">Cancel</button>
+        `;
+        document.body.appendChild(dialog);
+
+        dialog.querySelector('.start').addEventListener('click', async () => {
+            const startTime = new Date().toISOString();
+            await updateTodoStart(todo.id, startTime);
+            dialog.remove();
+        });
+
+        dialog.querySelector('.complete').addEventListener('click', async () => {
+            const completeTime = new Date().toISOString();
+            await updateTodoComplete(todo.id, completeTime);
+            dialog.remove();
+        });
+
+        dialog.querySelector('.cancel').addEventListener('click', () => {
+            dialog.remove();
+        });
     }
 
     fetchTodos();
